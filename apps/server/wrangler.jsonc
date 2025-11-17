@@ -3,6 +3,7 @@
 	"main": "src/index.ts",
 	"compatibility_date": "2025-06-15",
 	"compatibility_flags": ["nodejs_compat"],
+	"account_id": "b68f146d8cd0693998364d48e5f512a4",
 	"vars": {
 		"NODE_ENV": "production"
 		// Add public environment variables here
