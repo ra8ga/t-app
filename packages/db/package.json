@@ -13,24 +13,37 @@
   },
   "scripts": {
     "build": "tsdown",
-    "db:push": "drizzle-kit push",
+    "db:push": "bash -lc 'bash ../../scripts/db-utils.sh drizzle-push-local'",
+    "db:push:local": "bash -lc 'bash ../../scripts/db-utils.sh drizzle-push-local'",
+    "db:push:remote": "bash -lc 'bash ../../scripts/db-utils.sh drizzle-push-remote'",
     "db:studio": "drizzle-kit studio",
-    "db:studio:local": "export LOCAL_DB_PATH=\"$(find ../apps/server/.wrangler/state/v3/d1/miniflare-D1DatabaseObject -type f -name '*.sqlite' -print0 | xargs -0 ls -t | head -1)\" && PORT=\"${PORT:-4984}\" drizzle-kit studio --port=$PORT",
-    "db:studio:remote": "PORT=\"${PORT:-4985}\" drizzle-kit studio --port=$PORT",
-    "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate"
+    "db:studio:local": "bash -lc 'bash ../../scripts/db-utils.sh drizzle-studio-local'",
+    "db:studio:remote": "bash -lc 'bash ../../scripts/db-utils.sh drizzle-studio-remote'",
+    "db:generate": "bash -lc 'bash ../../scripts/db-utils.sh drizzle-generate-local'",
+    "db:generate:local": "bash -lc 'bash ../../scripts/db-utils.sh drizzle-generate-local'",
+    "db:generate:remote": "bash -lc 'bash ../../scripts/db-utils.sh drizzle-generate-remote'",
+    "db:migrate": "bash -lc 'bash ../../scripts/db-utils.sh drizzle-migrate-local'",
+    "db:migrate:local": "bash -lc 'bash ../../scripts/db-utils.sh drizzle-migrate-local'",
+    "db:migrate:remote": "bash -lc 'bash ../../scripts/db-utils.sh drizzle-migrate-remote'",
+    "db:studio:local:file": "bash -lc 'bash ../../scripts/db-utils.sh drizzle-studio-local-file'",
+    "db:migrate:local:file": "bash -lc 'bash ../../scripts/db-utils.sh drizzle-migrate-local-file'",
+    "db:clean-migrate:local:file": "bash -lc 'bash ../../scripts/db-utils.sh drizzle-clean-migrate-local-file'"
   },
   "devDependencies": {
-    "drizzle-kit": "^0.31.2",
+    "drizzle-kit": "catalog:",
     "tsdown": "catalog:",
     "@my-better-t-app/config": "workspace:*"
   },
   "peerDependencies": {
     "typescript": "^5"
   },
+  "engines": {
+    "node": ">=23",
+    "bun": ">=1.3.0"
+  },
   "dependencies": {
     "drizzle-orm": "catalog:",
-    "@libsql/client": "^0.14.0",
+    "@libsql/client": "catalog:",
     "dotenv": "catalog:",
     "zod": "catalog:"
   }

@@ -1,0 +1,7 @@
+PRAGMA foreign_keys=OFF;
+DROP TABLE IF EXISTS account;
+DROP TABLE IF EXISTS session;
+DROP TABLE IF EXISTS user;
+DROP TABLE IF EXISTS verification;
+DROP TABLE IF EXISTS todo;
+PRAGMA foreign_keys=ON;
