@@ -7,9 +7,16 @@
     "check-types": "tsc -b",
     "compile": "bun build --compile --minify --sourcemap --bytecode ./src/index.ts --outfile server",
     "dev": "wrangler dev --port=3000",
+    "dev:local": "wrangler dev --port=3000",
+    "dev:remote": "wrangler dev --remote --port=3000",
+    "dev:persist": "wrangler dev --port=3000 --persist-to .wrangler/state",
     "start": "wrangler dev",
     "deploy": "wrangler deploy",
-    "cf-typegen": "wrangler types --env-interface CloudflareBindings"
+    "cf-typegen": "wrangler types --env-interface CloudflareBindings",
+    "db:migrate:local": "wrangler d1 migrations apply DB --local",
+    "db:migrate:remote": "wrangler d1 migrations apply auth-litewkateam --remote",
+    "db:exec:local": "wrangler d1 execute DB --local --command",
+    "db:exec:remote": "wrangler d1 execute auth-litewkateam --remote --command"
   },
   "dependencies": {
     "hono": "catalog:",
