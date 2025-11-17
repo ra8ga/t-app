@@ -23,8 +23,8 @@
 	"d1_databases": [
 		{
 			"binding": "DB",
-			"database_name": "YOUR_DB_NAME",
-			"database_id": "YOUR_DB_ID",
+			"database_name": "auth-litewkateam",
+			"database_id": "6761866c-1393-4cb0-b2b8-944b9d67732a",
 			"preview_database_id": "local-test-db",
 			"migrations_dir": "./src/db/migrations"
 		}
