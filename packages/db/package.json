@@ -15,6 +15,8 @@
     "build": "tsdown",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
+    "db:studio:local": "export LOCAL_DB_PATH=\"$(find ../apps/server/.wrangler/state/v3/d1/miniflare-D1DatabaseObject -type f -name '*.sqlite' -print0 | xargs -0 ls -t | head -1)\" && PORT=\"${PORT:-4984}\" drizzle-kit studio --port=$PORT",
+    "db:studio:remote": "PORT=\"${PORT:-4985}\" drizzle-kit studio --port=$PORT",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate"
   },

@@ -32,6 +32,10 @@
     "dev:server": "turbo -F server dev",
     "db:push": "turbo -F @my-better-t-app/db db:push",
     "db:studio": "turbo -F @my-better-t-app/db db:studio",
+    "db:studio:local": "bash -lc 'cd packages/db && bun run db:studio:local'",
+    "db:studio:remote": "bash -lc 'cd packages/db && bun run db:studio:remote'",
+    "db:studio:local:port": "bash -lc 'cd packages/db && PORT=${PORT:-4984} bun run db:studio:local'",
+    "db:studio:remote:port": "bash -lc 'cd packages/db && PORT=${PORT:-4985} bun run db:studio:remote'",
     "db:generate": "turbo -F @my-better-t-app/db db:generate",
     "db:migrate": "turbo -F @my-better-t-app/db db:migrate"
   },
