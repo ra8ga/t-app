@@ -51,13 +51,31 @@ case "$cmd" in
     db="${D1_DB:-auth-litewkateam}"
     stamp="$(date +"%d-%m-%Y_%H-%M")-$(git rev-parse --short HEAD || echo unknown)"
     mkdir -p "$ROOT/backups"
-    bun x wrangler@latest d1 export "$db" --remote --config "$ROOT/apps/server/wrangler.jsonc" --output "$ROOT/backups/remote-${stamp}.sql"
+    bun x wrangler d1 export "$db" --remote --config "$ROOT/apps/server/wrangler.jsonc" --output "$ROOT/backups/remote-${stamp}.sql"
     ;;
   backup-local)
     db="${D1_DB:-auth-litewkateam}"
     stamp="$(date +"%d-%m-%Y_%H-%M")-$(git rev-parse --short HEAD || echo unknown)"
     mkdir -p "$ROOT/backups"
-    bun x wrangler@latest d1 export "$db" --config "$ROOT/apps/server/wrangler.jsonc" --output "$ROOT/backups/local-${stamp}.sql"
+    node_major=$(node -v | sed -E 's/^v([0-9]+).*/\1/')
+    if [ "${node_major:-0}" -lt 20 ]; then
+      project_root="$ROOT"
+      local_db_path="$(find "$project_root/apps/server/.wrangler/state/v3/d1/miniflare-D1DatabaseObject" -type f -name '*.sqlite' -print0 2>/dev/null | xargs -0 ls -t 2>/dev/null | head -1 || true)"
+      if [ -z "$local_db_path" ]; then
+        local_file="$ROOT/packages/db/.local/dev.sqlite"
+        if [ -f "$local_file" ]; then
+          cp "$local_file" "$ROOT/backups/local-${stamp}.sqlite"
+          echo "Backup lokalny (plik sqlite z packages/db/.local): $ROOT/backups/local-${stamp}.sqlite"
+        else
+          echo "Brak lokalnego pliku SQLite Miniflare oraz packages/db/.local/dev.sqlite i Node<20 (wrangler niedostępny)."; exit 1;
+        fi
+      else
+        cp "$local_db_path" "$ROOT/backups/local-${stamp}.sqlite"
+        echo "Backup lokalny (plik sqlite): $ROOT/backups/local-${stamp}.sqlite"
+      fi
+    else
+      bun x wrangler d1 export "$db" --config "$ROOT/apps/server/wrangler.jsonc" --output "$ROOT/backups/local-${stamp}.sql"
+    fi
     ;;
   backup-full)
     db="${D1_DB:-}"
@@ -66,21 +84,21 @@ case "$cmd" in
     commit="$(git rev-parse --short HEAD || echo unknown)"
     stamp="${ts}-${commit}"
     mkdir -p "$ROOT/backups/${stamp}"
-    bun x wrangler@latest d1 export "$db" --remote --config "$ROOT/apps/server/wrangler.jsonc" --output "$ROOT/backups/${stamp}/remote.sql"
-    bun x wrangler@latest d1 export "$db" --config "$ROOT/apps/server/wrangler.jsonc" --output "$ROOT/backups/${stamp}/local.sql"
+    bun x wrangler d1 export "$db" --remote --config "$ROOT/apps/server/wrangler.jsonc" --output "$ROOT/backups/${stamp}/remote.sql"
+    bun x wrangler d1 export "$db" --config "$ROOT/apps/server/wrangler.jsonc" --output "$ROOT/backups/${stamp}/local.sql"
     ;;
   restore-remote)
     file=${2:?file}
-    bun x wrangler@latest d1 execute "${D1_DB:?set D1_DB}" --remote --config "$ROOT/apps/server/wrangler.jsonc" --file "$file"
+    bun x wrangler d1 execute "${D1_DB:?set D1_DB}" --remote --config "$ROOT/apps/server/wrangler.jsonc" --file "$file"
     ;;
   restore-local)
     file=${2:?file}
-    bun x wrangler@latest d1 execute "${D1_DB:?set D1_DB}" --config "$ROOT/apps/server/wrangler.jsonc" --file "$file"
+    bun x wrangler d1 execute "${D1_DB:?set D1_DB}" --config "$ROOT/apps/server/wrangler.jsonc" --file "$file"
     ;;
   restore-remote-latest)
     file=$(ls -t "$ROOT"/backups/remote-*.sql | head -n 1 || true)
     if [ -n "$file" ]; then
-      bun x wrangler@latest d1 execute "${D1_DB:?set D1_DB}" --remote --config "$ROOT/apps/server/wrangler.jsonc" --file "$file"
+      bun x wrangler d1 execute "${D1_DB:?set D1_DB}" --remote --config "$ROOT/apps/server/wrangler.jsonc" --file "$file"
     else
       echo no remote backup found; exit 1
     fi
@@ -88,7 +106,7 @@ case "$cmd" in
   restore-local-latest)
     file=$(ls -t "$ROOT"/backups/local-*.sql | head -n 1 || true)
     if [ -n "$file" ]; then
-      bun x wrangler@latest d1 execute "${D1_DB:?set D1_DB}" --config "$ROOT/apps/server/wrangler.jsonc" --file "$file"
+      bun x wrangler d1 execute "${D1_DB:?set D1_DB}" --config "$ROOT/apps/server/wrangler.jsonc" --file "$file"
     else
       echo no local backup found; exit 1
     fi
@@ -98,30 +116,30 @@ case "$cmd" in
     tmp_schema="$ROOT/backups/_schema-${stamp}.sql"
     tmp_drop="$ROOT/backups/_drop-${stamp}.sql"
     mkdir -p "$ROOT/backups"
-    bun x wrangler@latest d1 export "${D1_DB:?set D1_DB}" --remote --no-data --config "$ROOT/apps/server/wrangler.jsonc" --output "$tmp_schema"
+    bun x wrangler d1 export "${D1_DB:?set D1_DB}" --remote --no-data --config "$ROOT/apps/server/wrangler.jsonc" --output "$tmp_schema"
     bash "$0" gen-drop-remote "$tmp_schema" "$tmp_drop"
-    bun x wrangler@latest d1 execute "${D1_DB:?set D1_DB}" --remote --config "$ROOT/apps/server/wrangler.jsonc" --file "$tmp_drop"
+    bun x wrangler d1 execute "${D1_DB:?set D1_DB}" --remote --config "$ROOT/apps/server/wrangler.jsonc" --file "$tmp_drop"
     ;;
   cleanup-local)
     stamp="$(date +"%d-%m-%Y_%H-%M")-$(git rev-parse --short HEAD || echo unknown)"
     tmp_schema="$ROOT/backups/_schema-${stamp}.sql"
     tmp_drop="$ROOT/backups/_drop-${stamp}.sql"
     mkdir -p "$ROOT/backups"
-    bun x wrangler@latest d1 export "${D1_DB:?set D1_DB}" --no-data --config "$ROOT/apps/server/wrangler.jsonc" --output "$tmp_schema"
+    bun x wrangler d1 export "${D1_DB:?set D1_DB}" --no-data --config "$ROOT/apps/server/wrangler.jsonc" --output "$tmp_schema"
     bash "$0" gen-drop-local "$tmp_schema" "$tmp_drop"
-    bun x wrangler@latest d1 execute "${D1_DB:?set D1_DB}" --config "$ROOT/apps/server/wrangler.jsonc" --file "$tmp_drop"
+    bun x wrangler d1 execute "${D1_DB:?set D1_DB}" --config "$ROOT/apps/server/wrangler.jsonc" --file "$tmp_drop"
     ;;
   clean-restore-remote-latest)
     stamp="$(date +"%d-%m-%Y_%H-%M")-$(git rev-parse --short HEAD || echo unknown)"
     tmp_schema="$ROOT/backups/_schema-${stamp}.sql"
     tmp_drop="$ROOT/backups/_drop-${stamp}.sql"
     mkdir -p "$ROOT/backups"
-    bun x wrangler@latest d1 export "${D1_DB:?set D1_DB}" --remote --no-data --config "$ROOT/apps/server/wrangler.jsonc" --output "$tmp_schema"
+    bun x wrangler d1 export "${D1_DB:?set D1_DB}" --remote --no-data --config "$ROOT/apps/server/wrangler.jsonc" --output "$tmp_schema"
     bash "$0" gen-drop-remote "$tmp_schema" "$tmp_drop"
-    bun x wrangler@latest d1 execute "${D1_DB:?set D1_DB}" --remote --config "$ROOT/apps/server/wrangler.jsonc" --file "$tmp_drop"
+    bun x wrangler d1 execute "${D1_DB:?set D1_DB}" --remote --config "$ROOT/apps/server/wrangler.jsonc" --file "$tmp_drop"
     file=$(ls -t "$ROOT"/backups/remote-*.sql | head -n 1 || true)
     if [ -n "$file" ]; then
-      bun x wrangler@latest d1 execute "${D1_DB:?set D1_DB}" --remote --config "$ROOT/apps/server/wrangler.jsonc" --file "$file"
+      bun x wrangler d1 execute "${D1_DB:?set D1_DB}" --remote --config "$ROOT/apps/server/wrangler.jsonc" --file "$file"
     else
       echo no remote backup found; exit 1
     fi
@@ -131,9 +149,9 @@ case "$cmd" in
     tmp_schema="$ROOT/backups/_schema-${stamp}.sql"
     tmp_drop="$ROOT/backups/_drop-${stamp}.sql"
     mkdir -p "$ROOT/backups"
-    bun x wrangler@latest d1 export "${D1_DB:?set D1_DB}" --no-data --config "$ROOT/apps/server/wrangler.jsonc" --output "$tmp_schema"
+    bun x wrangler d1 export "${D1_DB:?set D1_DB}" --no-data --config "$ROOT/apps/server/wrangler.jsonc" --output "$tmp_schema"
     bash "$0" gen-drop-local "$tmp_schema" "$tmp_drop"
-    bun x wrangler@latest d1 execute "${D1_DB:?set D1_DB}" --config "$ROOT/apps/server/wrangler.jsonc" --file "$tmp_drop"
+    bun x wrangler d1 execute "${D1_DB:?set D1_DB}" --config "$ROOT/apps/server/wrangler.jsonc" --file "$tmp_drop"
     file=$(ls -t "$ROOT"/backups/local-*.sql | head -n 1 || true)
     if [ -n "$file" ]; then
       bun x wrangler@latest d1 execute "${D1_DB:?set D1_DB}" --config "$ROOT/apps/server/wrangler.jsonc" --file "$file"
@@ -146,7 +164,7 @@ case "$cmd" in
     ;;
   clean-migrate-local)
     db="${D1_DB:-auth-litewkateam}"
-    bun x wrangler@latest d1 execute "$db" --config "$ROOT/apps/server/wrangler.jsonc" --command "SELECT 1;"
+    bun x wrangler d1 execute "$db" --config "$ROOT/apps/server/wrangler.jsonc" --command "SELECT 1;"
     (cd "$ROOT/packages/db" && bun run db:migrate:local)
     ;;
   clean-migrate-remote)
@@ -154,11 +172,11 @@ case "$cmd" in
     if [ -z "$db" ]; then echo Set D1_DB; exit 1; fi
     stamp="$(date +"%d-%m-%Y_%H-%M")-$(git rev-parse --short HEAD || echo unknown)"
     mkdir -p "$ROOT/backups"
-    bun x wrangler@latest d1 export "$db" --remote --config "$ROOT/apps/server/wrangler.jsonc" --output "$ROOT/backups/remote-${stamp}.sql"
-    bun x wrangler@latest d1 export "$db" --remote --no-data --config "$ROOT/apps/server/wrangler.jsonc" --output "$ROOT/backups/_schema-${stamp}.sql"
+    bun x wrangler d1 export "$db" --remote --config "$ROOT/apps/server/wrangler.jsonc" --output "$ROOT/backups/remote-${stamp}.sql"
+    bun x wrangler d1 export "$db" --remote --no-data --config "$ROOT/apps/server/wrangler.jsonc" --output "$ROOT/backups/_schema-${stamp}.sql"
     tmp_drop="$ROOT/backups/_drop-notx-noq-${stamp}.sql"
     bash "$0" gen-drop-remote "$ROOT/backups/_schema-${stamp}.sql" "$tmp_drop"
-    bun x wrangler@latest d1 execute "$db" --remote --config "$ROOT/apps/server/wrangler.jsonc" --file "$tmp_drop"
+    bun x wrangler d1 execute "$db" --remote --config "$ROOT/apps/server/wrangler.jsonc" --file "$tmp_drop"
     (cd "$ROOT/packages/db" && bun run db:migrate:remote)
     ;;
   drizzle-studio-local)
