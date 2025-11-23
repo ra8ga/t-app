@@ -10,7 +10,8 @@
     "start": "vite",
     "check-types": "tsc --noEmit",
     "wrangler:dev": "wrangler dev --port=3001",
-    "deploy": "bun run build && wrangler deploy"
+    "deploy": "bun run build && wrangler deploy",
+    "lint": "eslint ."
   },
   "dependencies": {
     "@hookform/resolvers": "catalog:",

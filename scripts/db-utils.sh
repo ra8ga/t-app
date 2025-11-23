@@ -57,24 +57,13 @@ case "$cmd" in
     db="${D1_DB:-auth-litewkateam}"
     stamp="$(date +"%d-%m-%Y_%H-%M")-$(git rev-parse --short HEAD || echo unknown)"
     mkdir -p "$ROOT/backups"
-    node_major=$(node -v | sed -E 's/^v([0-9]+).*/\1/')
-    if [ "${node_major:-0}" -lt 20 ]; then
-      project_root="$ROOT"
-      local_db_path="$(find "$project_root/apps/server/.wrangler/state/v3/d1/miniflare-D1DatabaseObject" -type f -name '*.sqlite' -print0 2>/dev/null | xargs -0 ls -t 2>/dev/null | head -1 || true)"
-      if [ -z "$local_db_path" ]; then
-        local_file="$ROOT/packages/db/.local/dev.sqlite"
-        if [ -f "$local_file" ]; then
-          cp "$local_file" "$ROOT/backups/local-${stamp}.sqlite"
-          echo "Backup lokalny (plik sqlite z packages/db/.local): $ROOT/backups/local-${stamp}.sqlite"
-        else
-          echo "Brak lokalnego pliku SQLite Miniflare oraz packages/db/.local/dev.sqlite i Node<20 (wrangler niedostępny)."; exit 1;
-        fi
-      else
-        cp "$local_db_path" "$ROOT/backups/local-${stamp}.sqlite"
-        echo "Backup lokalny (plik sqlite): $ROOT/backups/local-${stamp}.sqlite"
-      fi
-    else
+    # Node check removed as we are migrating to Bun
+    # Fallback logic for local backup without wrangler if needed, but primary path is bun x wrangler
+    if command -v bun &> /dev/null; then
       bun x wrangler d1 export "$db" --config "$ROOT/apps/server/wrangler.jsonc" --output "$ROOT/backups/local-${stamp}.sql"
+    else
+      echo "Bun is required for this script."
+      exit 1
     fi
     ;;
   backup-full)

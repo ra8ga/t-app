@@ -1,13 +1,23 @@
 {
-	"extends": "@my-better-t-app/config/tsconfig.base.json",
-	"compilerOptions": {
-		"composite": true,
-		"outDir": "dist",
-		"baseUrl": ".",
-		"paths": {
-			"@/*": ["./src/*"]
-		},
-		"jsx": "react-jsx",
-		"jsxImportSource": "hono/jsx"
-	}
+  "extends": "@my-better-t-app/config/tsconfig.base.json",
+  "compilerOptions": {
+    "composite": true,
+    "outDir": "dist",
+    "rootDir": "../..",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ],
+      "@my-better-t-app/*": [
+        "../../packages/*/src"
+      ]
+    },
+    "jsx": "react-jsx",
+    "jsxImportSource": "hono/jsx"
+  },
+  "include": [
+    "src",
+    "../../packages/*/src"
+  ]
 }

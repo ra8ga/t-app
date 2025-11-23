@@ -27,12 +27,14 @@
     "db:migrate:remote": "bash -lc 'bash ../../scripts/db-utils.sh drizzle-migrate-remote'",
     "db:studio:local:file": "bash -lc 'bash ../../scripts/db-utils.sh drizzle-studio-local-file'",
     "db:migrate:local:file": "bash -lc 'bash ../../scripts/db-utils.sh drizzle-migrate-local-file'",
-    "db:clean-migrate:local:file": "bash -lc 'bash ../../scripts/db-utils.sh drizzle-clean-migrate-local-file'"
+    "db:clean-migrate:local:file": "bash -lc 'bash ../../scripts/db-utils.sh drizzle-clean-migrate-local-file'",
+    "lint": "eslint ."
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^4.20251121.0",
+    "@my-better-t-app/config": "workspace:*",
     "drizzle-kit": "catalog:",
-    "tsdown": "catalog:",
-    "@my-better-t-app/config": "workspace:*"
+    "tsdown": "catalog:"
   },
   "peerDependencies": {
     "typescript": "^5"

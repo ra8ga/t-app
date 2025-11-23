@@ -12,7 +12,8 @@
   },
   "type": "module",
   "scripts": {
-    "build": "tsdown"
+    "build": "tsdown",
+    "lint": "eslint ."
   },
   "devDependencies": {
     "tsdown": "catalog:",
