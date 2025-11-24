@@ -26,7 +26,7 @@ export const createAuth = (
         loginPage: '/sign-in',
       }),
       emailOTP({
-        disableSignUp: true,
+        disableSignUp: false,
         overrideDefaultEmailVerification: true,
         async sendVerificationOTP({ email, otp, type }) {
           console.log(`[DEBUG] sendVerificationOTP called for ${email}`);
