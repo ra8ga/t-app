@@ -20,8 +20,24 @@ export const queryClient = new QueryClient({
   }),
 });
 
+// Automatically detect the server URL based on environment
+const getServerUrl = () => {
+  // If VITE_SERVER_URL is explicitly set, use it
+  if (import.meta.env.VITE_SERVER_URL) {
+    return import.meta.env.VITE_SERVER_URL;
+  }
+
+  // In development (localhost), use local server
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    return 'http://localhost:3000';
+  }
+
+  // In production, use the deployed server worker
+  return 'https://my-better-t-app-server.spottedx.workers.dev';
+};
+
 export const link = new RPCLink({
-  url: `${import.meta.env.VITE_SERVER_URL}/rpc`,
+  url: `${getServerUrl()}/rpc`,
   fetch(url, options) {
     return fetch(url, {
       ...options,

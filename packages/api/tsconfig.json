@@ -6,6 +6,6 @@
     "sourceMap": true,
     "outDir": "dist",
     "composite": true,
-    "types": ["../../apps/server/worker-configuration.d.ts"]
+    "types": ["@cloudflare/workers-types"]
   }
 }

@@ -17,7 +17,7 @@
       "zod": "^4.1.11",
       "typescript": "^5.8.2",
       "tsdown": "^0.15.5",
-      "wrangler": "^3.71.0",
+      "wrangler": "^4.50.0",
       "@types/node": "^22.13.11",
       "@orpc/client": "^1.10.0",
       "drizzle-orm": "^0.44.2",
@@ -62,13 +62,13 @@
     }
   },
   "scripts": {
-    "dev": "turbo dev",
+    "dev": "bash -lc 'bun run dev:server:remote & bun run dev:web'",
     "build": "turbo build",
     "dev:server": "turbo -F server dev",
+    "dev:server:remote": "turbo -F server dev:remote",
     "lint": "turbo lint",
     "format": "prettier --write \"**/*.{ts,tsx,md,json}\"",
     "check-types": "turbo check-types",
-    "dev:native": "turbo -F native dev",
     "dev:web": "turbo -F web dev",
     "catalog:check": "bash -lc 'bun ./scripts/catalog-check.cjs'",
     "db:push": "turbo -F @my-better-t-app/db db:push:local",
@@ -99,7 +99,8 @@
     "db:clean-restore:remote:latest": "bash -lc 'bash ./scripts/db-utils.sh clean-restore-remote-latest'",
     "db:clean-restore:local:latest": "bash -lc 'bash ./scripts/db-utils.sh clean-restore-local-latest'",
     "db:clean-migrate:local": "bash -lc 'bash ./scripts/db-utils.sh clean-migrate-local'",
-    "db:clean-migrate:local:file": "bash -lc 'cd packages/db && bun run db:clean-migrate:local:file'"
+    "db:clean-migrate:local:file": "bash -lc 'cd packages/db && bun run db:clean-migrate:local:file'",
+    "build:dev": "turbo -F web build:dev"
   },
   "dependencies": {
     "dotenv": "^17.2.2",
