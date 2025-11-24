@@ -79,12 +79,15 @@ export const createAuth = (
       }),
     ],
     trustedOrigins: (origin) => {
+      if (typeof origin !== 'string') {
+        return false;
+      }
       // Allow localhost for development
-      if (origin?.startsWith('http://localhost:') || origin?.startsWith('http://127.0.0.1:')) {
+      if (origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:')) {
         return true;
       }
       // Allow *.spottedx.workers.dev subdomains
-      if (origin?.endsWith('.spottedx.workers.dev')) {
+      if (origin.endsWith('.spottedx.workers.dev')) {
         return true;
       }
       // Allow CORS_ORIGIN from env
