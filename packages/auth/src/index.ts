@@ -78,15 +78,21 @@ export const createAuth = (
         },
       }),
     ],
-    trustedOrigins: [
-      env.CORS_ORIGIN,
-      'http://localhost:3002',
-      'http://127.0.0.1:3002',
-      'http://localhost:3001',
-      'http://127.0.0.1:3001',
-      'http://localhost:3000',
-      'http://127.0.0.1:3000',
-    ].filter(Boolean),
+    trustedOrigins: (origin) => {
+      // Allow localhost for development
+      if (origin?.startsWith('http://localhost:') || origin?.startsWith('http://127.0.0.1:')) {
+        return true;
+      }
+      // Allow *.spottedx.workers.dev subdomains
+      if (origin?.endsWith('.spottedx.workers.dev')) {
+        return true;
+      }
+      // Allow CORS_ORIGIN from env
+      if (env.CORS_ORIGIN && origin === env.CORS_ORIGIN) {
+        return true;
+      }
+      return false;
+    },
     emailAndPassword: {
       enabled: true,
     },
