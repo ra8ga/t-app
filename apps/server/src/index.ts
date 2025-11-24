@@ -13,7 +13,17 @@ import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
 import z from 'zod';
 
-const app = new Hono<{ Bindings: CloudflareBindings }>();
+type Bindings = {
+  DB: unknown;
+  NODE_ENV: string;
+  RESEND_API_KEY?: string;
+  EMAIL_FROM_ADDRESS?: string;
+  EMAIL_FROM_NAME?: string;
+  BETTER_AUTH_URL?: string;
+  PAYLOAD_SECRET?: string;
+};
+
+const app = new Hono<{ Bindings: Bindings }>();
 
 app.use(logger());
 app.use(
@@ -42,7 +52,11 @@ app.post('/api/v1/adopsiak-orders', async (c) => {
       shippingAddress: z.string().min(1),
       delegateName: z.string().min(1),
       delegatePhone1: z.string().regex(/^\+[1-9]\d{1,14}$/),
-      delegatePhone2: z.string().regex(/^\+[1-9]\d{1,14}$/).optional().or(z.literal('')),
+      delegatePhone2: z
+        .string()
+        .regex(/^\+[1-9]\d{1,14}$/)
+        .optional()
+        .or(z.literal('')),
       librariesCount: z.number().min(0).default(0),
       kindergartensCount: z.number().min(0).default(0),
       totalInstitutions: z.number().min(0).default(0),
@@ -54,9 +68,10 @@ app.post('/api/v1/adopsiak-orders', async (c) => {
 
     const parsed = schema.parse(payload);
     const createdAt = new Date().toISOString();
-    const total = parsed.totalInstitutions > 0
-      ? parsed.totalInstitutions
-      : parsed.librariesCount + parsed.kindergartensCount;
+    const total =
+      parsed.totalInstitutions > 0
+        ? parsed.totalInstitutions
+        : parsed.librariesCount + parsed.kindergartensCount;
 
     const db = createDb(c.env.DB);
 
@@ -102,7 +117,8 @@ app.post('/api/v1/adopsiak-orders', async (c) => {
             : c.env.EMAIL_FROM_ADDRESS
           : 'onboarding@resend.dev';
 
-        const recipientEmail = parsed.protocolEmailRecipient || 'kontakt@zwierzogranie.pl';
+        const recipientEmail =
+          parsed.protocolEmailRecipient || 'kontakt@zwierzogranie.pl';
 
         const res = await fetch('https://api.resend.com/emails', {
           method: 'POST',
@@ -120,7 +136,11 @@ app.post('/api/v1/adopsiak-orders', async (c) => {
 
         if (!res.ok) {
           const errorText = await res.text();
-          console.error('Failed to send email via Resend:', res.status, errorText);
+          console.error(
+            'Failed to send email via Resend:',
+            res.status,
+            errorText,
+          );
         } else {
           console.log('Email sent successfully via Resend');
         }
@@ -131,10 +151,137 @@ app.post('/api/v1/adopsiak-orders', async (c) => {
     }
 
     return c.json({ ok: true, message: 'Zgłoszenie wysłane' }, 200);
-  } catch (err: any) {
+  } catch (err) {
     console.error('Error processing adopsiak order:', err);
-    const message = err?.message || 'Błąd serwera';
+    const message = err instanceof Error ? err.message : 'Błąd serwera';
     return c.json({ error: message }, 500);
+  }
+});
+
+const otpSchemaSend = z.object({ email: z.string().email() });
+const otpSchemaCheck = z.object({
+  email: z.string().email(),
+  otp: z.string().min(4).max(10),
+});
+
+function generateOtp() {
+  const buf = new Uint32Array(1);
+  crypto.getRandomValues(buf);
+  return String(buf[0] % 1000000).padStart(6, '0');
+}
+
+async function hash(value: string) {
+  const data = new TextEncoder().encode(value);
+  const digest = await crypto.subtle.digest('SHA-256', data);
+  const bytes = new Uint8Array(digest);
+  return Array.from(bytes)
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
+}
+
+app.post('/api/v1/email-otp/send', async (c) => {
+  try {
+    const body = await c.req.json();
+    const parsed = otpSchemaSend.parse(body);
+    const email = parsed.email.trim().toLowerCase();
+
+    await c.env.DB.prepare(
+      'CREATE INDEX IF NOT EXISTS verification_identifier_idx ON verification(identifier)',
+    ).run();
+
+    const code = generateOtp();
+    const identifier = `adopsiak:${email}`;
+    const now = Date.now();
+    const expires = now + 10 * 60 * 1000;
+    const hashed = await hash(`${email}|${code}`);
+
+    await c.env.DB.prepare('DELETE FROM verification WHERE identifier = ?')
+      .bind(identifier)
+      .run();
+    await c.env.DB.prepare(
+      'INSERT INTO verification (id, identifier, value, expires_at, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)',
+    )
+      .bind(crypto.randomUUID(), identifier, hashed, expires, now, now)
+      .run();
+
+    if (c.env.RESEND_API_KEY) {
+      const sender = c.env.EMAIL_FROM_ADDRESS
+        ? c.env.EMAIL_FROM_NAME
+          ? `${c.env.EMAIL_FROM_NAME} <${c.env.EMAIL_FROM_ADDRESS}>`
+          : c.env.EMAIL_FROM_ADDRESS
+        : 'onboarding@resend.dev';
+      c.executionCtx?.waitUntil(
+        (async () => {
+          try {
+            const res = await fetch('https://api.resend.com/emails', {
+              method: 'POST',
+              headers: {
+                Authorization: `Bearer ${c.env.RESEND_API_KEY}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                from: sender,
+                to: email,
+                subject: `Kod weryfikacyjny: ${code}`,
+                html: `<p>Twój kod weryfikacyjny: <strong>${code}</strong></p>`,
+                text: `Twój kod weryfikacyjny: ${code}`,
+              }),
+            });
+            if (!res.ok) {
+              console.error(
+                'Failed to send email via Resend:',
+                await res.text(),
+              );
+            }
+          } catch (err) {
+            console.error('Resend error:', err);
+          }
+        })(),
+      );
+    }
+
+    return c.json({ success: true }, 200);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Błąd serwera';
+    return c.json({ error: message }, 400);
+  }
+});
+
+type OTPRow = { id: string; value: string; expires_at: number };
+
+app.post('/api/v1/email-otp/check', async (c) => {
+  try {
+    const body = await c.req.json();
+    const parsed = otpSchemaCheck.parse(body);
+    const email = parsed.email.trim().toLowerCase();
+    const otp = parsed.otp.trim();
+    const identifier = `adopsiak:${email}`;
+    const hashedInput = await hash(`${email}|${otp}`);
+
+    await c.env.DB.prepare(
+      'CREATE INDEX IF NOT EXISTS verification_identifier_idx ON verification(identifier)',
+    ).run();
+
+    const row = (await c.env.DB.prepare(
+      'SELECT id, value, expires_at FROM verification WHERE identifier = ? LIMIT 1',
+    )
+      .bind(identifier)
+      .first()) as OTPRow | null;
+
+    if (!row) return c.json({ error: 'Kod nieprawidłowy lub wygasł' }, 400);
+    const now = Date.now();
+    if (Number(row.expires_at) < now)
+      return c.json({ error: 'Kod nieprawidłowy lub wygasł' }, 400);
+    if (row.value !== hashedInput)
+      return c.json({ error: 'Kod nieprawidłowy lub wygasł' }, 400);
+
+    await c.env.DB.prepare('DELETE FROM verification WHERE id = ?')
+      .bind(row.id)
+      .run();
+    return c.json({ success: true }, 200);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Błąd serwera';
+    return c.json({ error: message }, 400);
   }
 });
 

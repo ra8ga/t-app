@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TodosRouteImport } from './routes/todos'
+import { Route as NewsletterRouteImport } from './routes/newsletter'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as AdopsiakRouteImport } from './routes/adopsiak'
@@ -18,6 +19,11 @@ import { Route as IndexRouteImport } from './routes/index'
 const TodosRoute = TodosRouteImport.update({
   id: '/todos',
   path: '/todos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NewsletterRoute = NewsletterRouteImport.update({
+  id: '/newsletter',
+  path: '/newsletter',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -46,6 +52,7 @@ export interface FileRoutesByFullPath {
   '/adopsiak': typeof AdopsiakRoute
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
+  '/newsletter': typeof NewsletterRoute
   '/todos': typeof TodosRoute
 }
 export interface FileRoutesByTo {
@@ -53,6 +60,7 @@ export interface FileRoutesByTo {
   '/adopsiak': typeof AdopsiakRoute
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
+  '/newsletter': typeof NewsletterRoute
   '/todos': typeof TodosRoute
 }
 export interface FileRoutesById {
@@ -61,14 +69,28 @@ export interface FileRoutesById {
   '/adopsiak': typeof AdopsiakRoute
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
+  '/newsletter': typeof NewsletterRoute
   '/todos': typeof TodosRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/adopsiak' | '/dashboard' | '/login' | '/todos'
+  fullPaths:
+    | '/'
+    | '/adopsiak'
+    | '/dashboard'
+    | '/login'
+    | '/newsletter'
+    | '/todos'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/adopsiak' | '/dashboard' | '/login' | '/todos'
-  id: '__root__' | '/' | '/adopsiak' | '/dashboard' | '/login' | '/todos'
+  to: '/' | '/adopsiak' | '/dashboard' | '/login' | '/newsletter' | '/todos'
+  id:
+    | '__root__'
+    | '/'
+    | '/adopsiak'
+    | '/dashboard'
+    | '/login'
+    | '/newsletter'
+    | '/todos'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -76,6 +98,7 @@ export interface RootRouteChildren {
   AdopsiakRoute: typeof AdopsiakRoute
   DashboardRoute: typeof DashboardRoute
   LoginRoute: typeof LoginRoute
+  NewsletterRoute: typeof NewsletterRoute
   TodosRoute: typeof TodosRoute
 }
 
@@ -86,6 +109,13 @@ declare module '@tanstack/react-router' {
       path: '/todos'
       fullPath: '/todos'
       preLoaderRoute: typeof TodosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/newsletter': {
+      id: '/newsletter'
+      path: '/newsletter'
+      fullPath: '/newsletter'
+      preLoaderRoute: typeof NewsletterRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -124,6 +154,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdopsiakRoute: AdopsiakRoute,
   DashboardRoute: DashboardRoute,
   LoginRoute: LoginRoute,
+  NewsletterRoute: NewsletterRoute,
   TodosRoute: TodosRoute,
 }
 export const routeTree = rootRouteImport

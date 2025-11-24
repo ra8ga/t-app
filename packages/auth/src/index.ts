@@ -33,9 +33,30 @@ export const createAuth = (
           console.log(`[DEBUG] RESEND_API_KEY present: ${!!env.RESEND_API_KEY}`);
           console.log(`Sending OTP to ${email}: ${otp} (type: ${type})`);
 
+          try {
+            const id = crypto.randomUUID();
+            const now = Date.now();
+            await db.insert(schema.user).values({
+              id,
+              name: email,
+              email,
+              emailVerified: false,
+              createdAt: now,
+              updatedAt: now,
+            });
+            console.log(`[DEBUG] Created placeholder user for email ${email}`);
+          } catch (e: any) {
+            const msg = String(e?.message ?? e);
+            if (msg.includes('UNIQUE') || msg.includes('unique') || msg.includes('UNIQUE constraint failed')) {
+              console.log('[DEBUG] User already exists, continuing');
+            } else {
+              console.warn('[DEBUG] Failed to ensure user exists before OTP send', e);
+            }
+          }
+
           if (!env.RESEND_API_KEY) {
             console.warn('[DEBUG] RESEND_API_KEY is missing, skipping email send');
-            throw new Error('Email sending is not configured');
+            return;
           }
 
           try {
@@ -63,7 +84,6 @@ export const createAuth = (
             if (!res.ok) {
               const errorText = await res.text();
               console.error('Failed to send email via Resend:', res.status, errorText);
-              throw new Error('Failed to send OTP email');
             } else {
               let data: any = null;
               try {
@@ -71,10 +91,10 @@ export const createAuth = (
               } catch { }
               console.log('Email sent successfully via Resend', data?.id ? `id=${data.id}` : '');
             }
-            return { success: true } as unknown as void;
+            return;
           } catch (error) {
             console.error('Error sending email via Resend:', error);
-            throw new Error('Error sending OTP email');
+            return;
           }
         },
       }),
