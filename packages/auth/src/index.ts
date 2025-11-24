@@ -28,7 +28,6 @@ export const createAuth = (
       emailOTP({
         disableSignUp: true,
         overrideDefaultEmailVerification: true,
-        /*
         async sendVerificationOTP({ email, otp, type }) {
           console.log(`[DEBUG] sendVerificationOTP called for ${email}`);
           console.log(`[DEBUG] RESEND_API_KEY present: ${!!env.RESEND_API_KEY}`);
@@ -72,12 +71,12 @@ export const createAuth = (
               } catch { }
               console.log('Email sent successfully via Resend', data?.id ? `id=${data.id}` : '');
             }
+            return { success: true } as unknown as void;
           } catch (error) {
             console.error('Error sending email via Resend:', error);
             throw new Error('Error sending OTP email');
           }
         },
-        */
       }),
     ],
     trustedOrigins: (origin) => {
