@@ -1,5 +1,6 @@
 import { betterAuth, type BetterAuthOptions } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
+import { oidcProvider } from 'better-auth/plugins';
 import type { DB } from '@my-better-t-app/db';
 import * as schema from '@my-better-t-app/db/schema/auth';
 
@@ -17,6 +18,11 @@ export const createAuth = (
 
       schema: schema,
     }),
+    plugins: [
+      oidcProvider({
+        loginPage: '/sign-in',
+      }),
+    ],
     trustedOrigins: [env.CORS_ORIGIN],
     emailAndPassword: {
       enabled: true,
