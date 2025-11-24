@@ -100,15 +100,11 @@ function AdopsiakRoute() {
         }
         setIsVerifyingOtp(true);
         try {
-            // Note: In a real app, this would verify the OTP.
-            // Since we don't have a full user session flow here, we might need a custom endpoint
-            // or assume the client-side check is enough for this demo if better-auth doesn't support
-            // verifying without signing in.
-            // However, better-auth emailOTP usually signs the user in.
-            // Let's try to verify.
-            const res = await authClient.emailOtp.verifyEmail({
+            // Use checkVerificationOtp() to verify email ownership without requiring a user account
+            const res = await authClient.emailOtp.checkVerificationOtp({
                 email,
                 otp,
+                type: 'email-verification',
             });
             if (res.error) {
                 throw new Error(res.error.message);

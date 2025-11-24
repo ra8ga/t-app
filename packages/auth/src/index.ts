@@ -26,6 +26,7 @@ export const createAuth = (
         loginPage: '/sign-in',
       }),
       emailOTP({
+        disableSignUp: true,
         overrideDefaultEmailVerification: true,
         async sendVerificationOTP({ email, otp, type }) {
           console.log(`[DEBUG] sendVerificationOTP called for ${email}`);
@@ -34,7 +35,7 @@ export const createAuth = (
 
           if (!env.RESEND_API_KEY) {
             console.warn('[DEBUG] RESEND_API_KEY is missing, skipping email send');
-            return;
+            throw new Error('Email sending is not configured');
           }
 
           try {
@@ -62,21 +63,25 @@ export const createAuth = (
             if (!res.ok) {
               const errorText = await res.text();
               console.error('Failed to send email via Resend:', res.status, errorText);
+              throw new Error('Failed to send OTP email');
             } else {
               let data: any = null;
               try {
                 data = await res.json();
-              } catch {}
+              } catch { }
               console.log('Email sent successfully via Resend', data?.id ? `id=${data.id}` : '');
             }
           } catch (error) {
             console.error('Error sending email via Resend:', error);
+            throw new Error('Error sending OTP email');
           }
         },
       }),
     ],
     trustedOrigins: [
       env.CORS_ORIGIN,
+      'http://localhost:3002',
+      'http://127.0.0.1:3002',
       'http://localhost:3001',
       'http://127.0.0.1:3001',
       'http://localhost:3000',
