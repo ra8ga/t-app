@@ -1,6 +1,9 @@
-import type { auth } from '@my-better-t-app/auth';
+import type { Auth } from '@my-better-t-app/auth';
 import { createAuthClient } from 'better-auth/react';
-import { inferAdditionalFields } from 'better-auth/client/plugins';
+import {
+  emailOTPClient,
+  inferAdditionalFields,
+} from 'better-auth/client/plugins';
 
 // Automatically detect the server URL based on environment
 const getServerUrl = () => {
@@ -10,7 +13,10 @@ const getServerUrl = () => {
   }
 
   // In development (localhost), use local server
-  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+  if (
+    window.location.hostname === 'localhost' ||
+    window.location.hostname === '127.0.0.1'
+  ) {
     return 'http://localhost:3000';
   }
 
@@ -20,5 +26,5 @@ const getServerUrl = () => {
 
 export const authClient = createAuthClient({
   baseURL: getServerUrl(),
-  plugins: [inferAdditionalFields<typeof auth>()],
+  plugins: [inferAdditionalFields<Auth>(), emailOTPClient()],
 });

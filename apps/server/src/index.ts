@@ -24,7 +24,7 @@ app.use(
   }),
 );
 
-app.on(['POST', 'GET'], '/api/auth/*', (c) => {
+app.all('/api/auth/*', (c) => {
   const db = createDb(c.env.DB);
   const auth = createAuth(db, c.env);
   return auth.handler(c.req.raw);
