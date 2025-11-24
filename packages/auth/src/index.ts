@@ -79,23 +79,23 @@ export const createAuth = (
         },
       }),
     ],
-    trustedOrigins: (origin) => {
-      if (typeof origin !== 'string') {
-        return false;
-      }
+    trustedOrigins: async (request) => {
+      const origin = request.headers.get('origin');
+      if (!origin) return [];
+
       // Allow localhost for development
       if (origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:')) {
-        return true;
+        return [origin];
       }
       // Allow *.spottedx.workers.dev subdomains
       if (origin.endsWith('.spottedx.workers.dev')) {
-        return true;
+        return [origin];
       }
       // Allow CORS_ORIGIN from env
       if (env.CORS_ORIGIN && origin === env.CORS_ORIGIN) {
-        return true;
+        return [origin];
       }
-      return false;
+      return [];
     },
     emailAndPassword: {
       enabled: true,
