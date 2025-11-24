@@ -28,6 +28,7 @@ export const createAuth = (
       emailOTP({
         disableSignUp: true,
         overrideDefaultEmailVerification: true,
+        /*
         async sendVerificationOTP({ email, otp, type }) {
           console.log(`[DEBUG] sendVerificationOTP called for ${email}`);
           console.log(`[DEBUG] RESEND_API_KEY present: ${!!env.RESEND_API_KEY}`);
@@ -76,6 +77,7 @@ export const createAuth = (
             throw new Error('Error sending OTP email');
           }
         },
+        */
       }),
     ],
     trustedOrigins: (origin) => {
