@@ -19,10 +19,18 @@ app.use(logger());
 app.use(
   '/*',
   cors({
-    origin: '*', // Allow all origins temporarily
-    allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowHeaders: ['Content-Type', 'Authorization'],
-    credentials: true,
+    origin: (origin) => {
+      // Allow localhost for development
+      if (origin === 'http://localhost:3000' || origin === 'http://localhost:3002') return origin;
+
+      // Allow production domains
+      if (origin === 'https://zwierzogranie.pl' || origin === 'https://www.zwierzogranie.pl') return origin;
+
+      // Allow all spottedx.workers.dev subdomains (preview & production)
+      if (origin.endsWith('.spottedx.workers.dev')) return origin;
+
+      return undefined;
+    },
   }),
 );
 
