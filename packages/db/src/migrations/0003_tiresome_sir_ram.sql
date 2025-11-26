@@ -1,0 +1,1 @@
+ALTER TABLE `adopsiak_orders` DROP COLUMN `delivery_date`;

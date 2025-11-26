@@ -1,0 +1,1 @@
+ALTER TABLE `adopsiak_orders` ADD `email` text NOT NULL;

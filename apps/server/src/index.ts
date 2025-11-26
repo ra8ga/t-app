@@ -115,7 +115,7 @@ app.post('/api/v1/adopsiak-orders', async (c) => {
           ? c.env.EMAIL_FROM_NAME
             ? `${c.env.EMAIL_FROM_NAME} <${c.env.EMAIL_FROM_ADDRESS}>`
             : c.env.EMAIL_FROM_ADDRESS
-          : 'onboarding@resend.dev';
+          : 'no-reply@zwierzogranie.pl';
 
         const recipientEmail =
           parsed.protocolEmailRecipient || 'kontakt@zwierzogranie.pl';
@@ -209,7 +209,7 @@ app.post('/api/v1/email-otp/send', async (c) => {
         ? c.env.EMAIL_FROM_NAME
           ? `${c.env.EMAIL_FROM_NAME} <${c.env.EMAIL_FROM_ADDRESS}>`
           : c.env.EMAIL_FROM_ADDRESS
-        : 'onboarding@resend.dev';
+        : 'no-reply@zwierzogranie.pl';
       c.executionCtx?.waitUntil(
         (async () => {
           try {
@@ -222,7 +222,7 @@ app.post('/api/v1/email-otp/send', async (c) => {
               body: JSON.stringify({
                 from: sender,
                 to: email,
-                subject: `Kod weryfikacyjny: ${code}`,
+                subject: 'Kod weryfikacyjny',
                 html: `<p>Twój kod weryfikacyjny: <strong>${code}</strong></p>`,
                 text: `Twój kod weryfikacyjny: ${code}`,
               }),

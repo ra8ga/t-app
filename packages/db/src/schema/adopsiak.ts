@@ -10,7 +10,6 @@ export const adopsiakOrders = sqliteTable('adopsiak_orders', {
     librariesCount: integer('libraries_count').notNull().default(0),
     kindergartensCount: integer('kindergartens_count').notNull().default(0),
     totalInstitutions: integer('total_institutions').notNull().default(0),
-    deliveryDate: text('delivery_date'),
     protocolText: text('protocol_text'),
     protocolEmailRecipient: text('protocol_email_recipient'),
     email: text('email').notNull(),
