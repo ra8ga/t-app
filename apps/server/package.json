@@ -20,16 +20,21 @@
     "lint": "eslint ."
   },
   "dependencies": {
-    "hono": "catalog:",
-    "@orpc/server": "catalog:",
-    "@orpc/openapi": "catalog:",
-    "@orpc/zod": "catalog:",
-    "better-auth": "catalog:",
-    "dotenv": "catalog:",
-    "zod": "catalog:",
     "@my-better-t-app/api": "workspace:*",
     "@my-better-t-app/auth": "workspace:*",
-    "@my-better-t-app/db": "workspace:*"
+    "@my-better-t-app/db": "workspace:*",
+    "@orpc/openapi": "catalog:",
+    "@orpc/server": "catalog:",
+    "@orpc/zod": "catalog:",
+    "@pdf-lib/fontkit": "^1.1.1",
+    "better-auth": "catalog:",
+    "dotenv": "catalog:",
+    "drizzle-orm": "^0.44.7",
+    "hono": "catalog:",
+    "jspdf": "^3.0.4",
+    "pdf-lib": "^1.17.1",
+    "roboto-fontface": "^0.10.0",
+    "zod": "catalog:"
   },
   "devDependencies": {
     "typescript": "catalog:",
