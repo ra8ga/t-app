@@ -17,6 +17,7 @@
     "db:migrate:remote": "wrangler d1 migrations apply auth-litewkateam --remote",
     "db:exec:local": "wrangler d1 execute DB --local --command",
     "db:exec:remote": "wrangler d1 execute auth-litewkateam --remote --command",
+    "generate-assets": "bun ./scripts/assets-manager.ts",
     "lint": "eslint ."
   },
   "dependencies": {
@@ -37,10 +38,11 @@
     "zod": "catalog:"
   },
   "devDependencies": {
-    "typescript": "catalog:",
-    "tsdown": "catalog:",
+    "@cloudflare/workers-types": "^4.20251128.0",
     "@my-better-t-app/config": "workspace:*",
-    "wrangler": "catalog:",
-    "@types/node": "catalog:"
+    "@types/node": "catalog:",
+    "tsdown": "catalog:",
+    "typescript": "catalog:",
+    "wrangler": "catalog:"
   }
 }

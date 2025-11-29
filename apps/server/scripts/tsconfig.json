@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": "../../../packages/config/tsconfig.base.json",
+  "compilerOptions": {
+    "types": [
+      "node",
+      "bun-types"
+    ],
+    "module": "ESNext",
+    "target": "ESNext"
+  },
+  "include": [
+    "./**/*.ts"
+  ]
+}
