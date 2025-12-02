@@ -10,7 +10,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { createFileRoute } from '@tanstack/react-router';
 import { Loader2, Trash2 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, type FormEvent } from 'react';
 
 import { orpc } from '@/utils/orpc';
 import { useMutation, useQuery } from '@tanstack/react-query';
@@ -46,7 +46,7 @@ function TodosRoute() {
     }),
   );
 
-  const handleAddTodo = (e: React.FormEvent) => {
+  const handleAddTodo = (e: FormEvent) => {
     e.preventDefault();
     if (newTodoText.trim()) {
       createMutation.mutate({ text: newTodoText });
