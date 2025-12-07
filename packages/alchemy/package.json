@@ -1,0 +1,19 @@
+{
+    "name": "@repo/alchemy",
+    "version": "0.0.0",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "dev": "alchemy dev src/index.ts",
+        "deploy": "alchemy deploy src/index.ts",
+        "deploy:app": "alchemy deploy src/index.ts",
+        "destroy": "alchemy destroy src/index.ts"
+    },
+    "dependencies": {
+        "alchemy": "^0.80.1"
+    },
+    "devDependencies": {
+        "typescript": "^5.0.0",
+        "@types/node": "^20.0.0"
+    }
+}
