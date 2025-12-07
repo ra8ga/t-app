@@ -1,0 +1,3 @@
+[submodule "apps/zwierzogranie-neutering"]
+	path = apps/zwierzogranie-neutering
+	url = ../../zwierzogranie-neutering
