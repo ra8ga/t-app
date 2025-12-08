@@ -26,16 +26,37 @@ export const createAuth = (
         loginPage: '/sign-in',
       }),
       emailOTP({
-        disableSignUp: true,
+        disableSignUp: false,
         overrideDefaultEmailVerification: true,
         async sendVerificationOTP({ email, otp, type }) {
           console.log(`[DEBUG] sendVerificationOTP called for ${email}`);
           console.log(`[DEBUG] RESEND_API_KEY present: ${!!env.RESEND_API_KEY}`);
           console.log(`Sending OTP to ${email}: ${otp} (type: ${type})`);
 
+          try {
+            const id = crypto.randomUUID();
+            const now = Date.now();
+            await db.insert(schema.user).values({
+              id,
+              name: email,
+              email,
+              emailVerified: false,
+              createdAt: now,
+              updatedAt: now,
+            });
+            console.log(`[DEBUG] Created placeholder user for email ${email}`);
+          } catch (e: any) {
+            const msg = String(e?.message ?? e);
+            if (msg.includes('UNIQUE') || msg.includes('unique') || msg.includes('UNIQUE constraint failed')) {
+              console.log('[DEBUG] User already exists, continuing');
+            } else {
+              console.warn('[DEBUG] Failed to ensure user exists before OTP send', e);
+            }
+          }
+
           if (!env.RESEND_API_KEY) {
             console.warn('[DEBUG] RESEND_API_KEY is missing, skipping email send');
-            throw new Error('Email sending is not configured');
+            return;
           }
 
           try {
@@ -63,7 +84,6 @@ export const createAuth = (
             if (!res.ok) {
               const errorText = await res.text();
               console.error('Failed to send email via Resend:', res.status, errorText);
-              throw new Error('Failed to send OTP email');
             } else {
               let data: any = null;
               try {
@@ -71,22 +91,32 @@ export const createAuth = (
               } catch { }
               console.log('Email sent successfully via Resend', data?.id ? `id=${data.id}` : '');
             }
+            return;
           } catch (error) {
             console.error('Error sending email via Resend:', error);
-            throw new Error('Error sending OTP email');
+            return;
           }
         },
       }),
     ],
-    trustedOrigins: [
-      env.CORS_ORIGIN,
-      'http://localhost:3002',
-      'http://127.0.0.1:3002',
-      'http://localhost:3001',
-      'http://127.0.0.1:3001',
-      'http://localhost:3000',
-      'http://127.0.0.1:3000',
-    ].filter(Boolean),
+    trustedOrigins: async (request) => {
+      const origin = request.headers.get('origin');
+      if (!origin) return [];
+
+      // Allow localhost for development
+      if (origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:')) {
+        return [origin];
+      }
+      // Allow *.spottedx.workers.dev subdomains
+      if (origin.endsWith('.spottedx.workers.dev')) {
+        return [origin];
+      }
+      // Allow CORS_ORIGIN from env
+      if (env.CORS_ORIGIN && origin === env.CORS_ORIGIN) {
+        return [origin];
+      }
+      return [];
+    },
     emailAndPassword: {
       enabled: true,
     },
